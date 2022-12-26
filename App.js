@@ -1,20 +1,34 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import "react-native-gesture-handler";
 
-export default function App() {
+import { StyleSheet, SafeAreaView, StatusBar, LogBox } from "react-native";
+import React from "react";
+import Navigation from "./src/components/Navigation";
+import { myColors } from "./colors";
+
+import * as NavigationBar from "expo-navigation-bar";
+
+const App = () => {
+  // Auth.signOut();
+  React.useEffect(() => {
+    LogBox.ignoreLogs([
+      "AsyncStorage has been extracted from react-native core and will be removed in a future release. It can now be installed and imported from '@react-native-async-storage/async-storage' instead of 'react-native'. See https://github.com/react-native-async-storage/async-storage",
+    ]);
+  }, []);
+  NavigationBar.setBackgroundColorAsync("black");
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={styles.root}>
+      <StatusBar barStyle={"light-content"} backgroundColor={"black"} />
+      <Navigation />
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    // marginTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    backgroundColor: myColors.pbgc,
   },
 });
+
+export default App;

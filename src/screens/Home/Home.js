@@ -18,12 +18,23 @@ import { listUserChatRooms } from "../../../supabaseQueries";
 import { supabase } from "../../initSupabase";
 
 // import { registerForPushNotificationsAsync } from "../../notification";
-// import * as Notifications from "expo-notifications";
+import * as Notifications from "expo-notifications";
 
 // import { addUserPushToken } from "../../../supabaseQueries";
+import { Linking } from "react-native";
 
 const Home = () => {
   const [expoPushToken, setExpoPushToken] = useState("");
+
+  //open app when notification pressed
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        Linking.openURL("com.wca.myapp://");
+      }
+    );
+    return () => subscription.remove();
+  }, []);
 
   const appState = useRef(AppState.currentState);
 

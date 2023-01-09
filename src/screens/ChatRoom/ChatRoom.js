@@ -126,16 +126,16 @@ const ChatRoom = () => {
     channel.on("presence", { event: "sync" }, async () => {
       const typingUsers = channel.presenceState();
       if (typingUsers.hasOwnProperty(otherUser?.id)) {
-        console.log(
-          new Date().getTime() - typingUsers[otherUser.id][0].updatedAt,
-          typingUsers[otherUser?.id][0].msg
-        );
+        // console.log(
+        //   new Date().getTime() - typingUsers[otherUser.id][0].updatedAt,
+        //   typingUsers[otherUser?.id][0].msg
+        // );
         if (
           new Date().getTime() - typingUsers[otherUser?.id][0].updatedAt <
             10000 &&
           typingUsers[otherUser?.id][0].msg.length > 0
         ) {
-          console.log("he typed");
+          // console.log("he typed");
           setIsTyping(true);
           setOmsg(typingUsers[otherUser?.id][0].msg);
           setTimeout(() => {

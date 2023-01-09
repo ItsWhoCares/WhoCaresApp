@@ -11,6 +11,8 @@ import {
   getCommonChatRoom,
 } from "../../../supabaseQueries";
 
+import { sendPushNotification } from "../../notification";
+
 const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
   const [message, setMessage] = useState("");
   // const [otherUser, setOtherUser] = useState(OtherUser);
@@ -39,15 +41,15 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
     });
     setLoading(false);
 
-    // send push notification
-    // const notificationMessage = {
-    //   title: otherUser.name,
-    //   body: newMessageData.text,
-    // };
-    // sendPushNotification({
-    //   UserID: otherUser.id,
-    //   message: notificationMessage,
-    // });
+    //send push notification
+    const notificationMessage = {
+      title: otherUser.name,
+      body: newMessageData.text,
+    };
+    sendPushNotification({
+      UserID: otherUser.id,
+      message: notificationMessage,
+    });
 
     // console.log("otherUser", otherUser);
   };

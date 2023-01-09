@@ -9,6 +9,7 @@ import {
   createMessage,
   updateChatRoomLastMessage,
   getCommonChatRoom,
+  getUserByID,
 } from "../../../supabaseQueries";
 
 import { sendPushNotification } from "../../notification";
@@ -42,8 +43,10 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
     setLoading(false);
 
     //send push notification
+    // console.log(otherUser);
+    const oUser = await getUserByID(auth.currentUser.uid);
     const notificationMessage = {
-      title: otherUser.name,
+      title: oUser.name,
       body: newMessageData.text,
     };
     sendPushNotification({

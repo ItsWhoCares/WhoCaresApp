@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   ActivityIndicator,
+  AppState,
 } from "react-native";
 import React from "react";
 import { useRoute } from "@react-navigation/native";
@@ -179,6 +180,15 @@ const ChatRoom = () => {
   //   });
   //   console.log(status);
   // }, [typing]);
+
+  const _handleFocus = (state) => {
+    if (state === "active") fetchMessages();
+  };
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", _handleFocus);
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     navigation.setOptions({

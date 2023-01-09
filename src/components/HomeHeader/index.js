@@ -2,9 +2,11 @@ import { View, Text } from "react-native";
 import React from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+// import * as Linking from "expo-linking";
 const HomeHeader = () => {
   const navigation = useNavigation();
-  const onSettingsPressed = () => {
+  const onSettingsPressed = async () => {
+    // Linking.openURL("wca://");
     navigation.navigate("Settings");
   };
   const onSearchPressed = () => {

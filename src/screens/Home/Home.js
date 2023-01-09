@@ -17,42 +17,48 @@ import { auth } from "../../../firebase";
 import { listUserChatRooms } from "../../../supabaseQueries";
 import { supabase } from "../../initSupabase";
 
-// import { registerForPushNotificationsAsync } from "../../notification";
+// // import { registerForPushNotificationsAsync } from "../../notification";
 import * as Notifications from "expo-notifications";
 
-// import { addUserPushToken } from "../../../supabaseQueries";
-import { Linking } from "react-native";
+import { addUserPushToken } from "../../../supabaseQueries";
+// import { Linking } from "react-native";
+// import * as Linking from "expo-linking";
 
 const Home = () => {
   const [expoPushToken, setExpoPushToken] = useState("");
-
-  //open app when notification pressed
-  React.useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        Linking.openURL("com.wca.myapp://");
-      }
-    );
+  useEffect(() => {
+    const subscription = Notifications.addPushTokenListener(addUserPushToken);
     return () => subscription.remove();
   }, []);
 
+  //open app when notification pressed
+  // React.useEffect(() => {
+  //   const subscription = Notifications.addNotificationResponseReceivedListener(
+  //     (response) => {
+  //       Linking.openURL("com.wca.myapp://");
+  //     }
+  //   );
+  //   return () => subscription.remove();
+  // }, []);
+
   const appState = useRef(AppState.currentState);
 
-  const [appStateVisible, setAppStateVisible] = useState(appState.current);
+  // const [appStateVisible, setAppStateVisible] = useState(appState.current);
   const _handleAppStateChange = (nextAppState) => {
     if (
       appState.current.match(/inactive|background/) &&
       nextAppState === "active"
     ) {
-      // console.log("App has come to the foreground!");
+      console.log("App has come to the foreground!");
       setRerender(!rerender);
+      Notifications.dismissAllNotificationsAsync();
     }
     if (appState.current === "background") {
-      console.log("App is in background");
+      // console.log("App is in background");
     }
     appState.current = nextAppState;
-    setAppStateVisible(appState.current);
-    console.log("AppState", appState.current);
+    // setAppStateVisible(appState.current);
+    // console.log("AppState", appState.current);
   };
 
   useEffect(() => {

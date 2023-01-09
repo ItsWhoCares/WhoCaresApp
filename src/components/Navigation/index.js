@@ -17,6 +17,9 @@ import Search from "../../screens/Search";
 import { auth } from "../../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
+// import { Linking } from "react-native";
+// import * as Notifications from "expo-notifications";
+
 const Navigation = () => {
   const [user, setUser] = useState(undefined);
   const checkUser = async () => {
@@ -102,3 +105,53 @@ const styles = StyleSheet.create({
 });
 
 export default Navigation;
+
+/*linking={{
+        config: {
+          // Configuration for linking
+        },
+        async getInitialURL() {
+          // First, you may want to do the default deep link handling
+          // Check if app was opened from a deep link
+          const url = await Linking.getInitialURL();
+
+          if (url != null) {
+            return url;
+          }
+
+          // Handle URL from expo push notifications
+          const response =
+            await Notifications.getLastNotificationResponseAsync();
+          const url1 = "com.wca.myapp://";
+
+          return url1;
+        },
+        subscribe(listener) {
+          const onReceiveURL = ({ url }) => listener(url);
+
+          // Listen to incoming links from deep linking
+          const surl = Linking.addEventListener("url", onReceiveURL);
+
+          // Listen to expo push notifications
+          const subscription =
+            Notifications.addNotificationResponseReceivedListener(
+              (response) => {
+                const url = "com.wca.myapp://";
+
+                // Any custom logic to see whether the URL needs to be handled
+                //...
+
+                // Let React Navigation handle the URL
+                listener(url);
+              }
+            );
+
+          return () => {
+            // Clean up the event listeners
+            surl.remove();
+            subscription.remove();
+          };
+        },
+      }}
+
+*/

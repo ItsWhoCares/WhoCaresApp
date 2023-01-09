@@ -29,6 +29,7 @@ const ChatRoom = () => {
   const [authUser, setAuthUser] = useState(auth.currentUser);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   useEffect(() => {
     setAuthUser(auth.currentUser);
     // Auth.currentAuthenticatedUser().then((user) => setAuthUser(user));
@@ -39,29 +40,6 @@ const ChatRoom = () => {
 
   const otherUser = route.params?.user;
   const chatRoomId = route.params?.id;
-
-  useEffect(() => {
-    navigation.setOptions({
-      title: null,
-      // headerTitleAlign: "left",
-      // headerTitleStyle: {
-      //   color: "white",
-      // },
-      headerStyle: {
-        backgroundColor: myColors.pbgc,
-        // marginLeft: 10,
-      },
-      // headerBackImageSource: user.image,
-      headerLeft: () => (
-        <CustomHeader
-          image={otherUser?.image}
-          online={false}
-          oUser={otherUser}
-        />
-      ),
-    });
-  }, [otherUser.name]);
-  // const msg = messages.filter((m) => m.chatId === id);
 
   //chat room info
   useEffect(() => {
@@ -121,49 +99,104 @@ const ChatRoom = () => {
     return () => supabase.removeChannel(subscription);
   }, [chatRoomId]);
 
-  // useEffect(() => {
-  //   // Supabase client setup
+  const [msg, setMsg] = useState("");
+  const [omsg, setOmsg] = useState("");
+  const onTyping = (text) => {
+    setMsg(text);
+    // console.log(msg);
+  };
 
-  //   const channel = supabase.channel("online-users", {
+  useEffect(() => {
+    const channel = supabase.channel("user-typing", {
+      config: {
+        presence: {
+          key: auth.currentUser.uid,
+        },
+      },
+    });
+    channel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        const status = await channel.track({
+          typing: true,
+          msg: msg,
+          updatedAt: new Date().getTime(),
+        });
+      }
+    });
+    channel.on("presence", { event: "sync" }, async () => {
+      const typingUsers = channel.presenceState();
+      if (typingUsers.hasOwnProperty(otherUser?.id)) {
+        console.log(
+          new Date().getTime() - typingUsers[otherUser.id][0].updatedAt,
+          typingUsers[otherUser?.id][0].msg
+        );
+        if (
+          new Date().getTime() - typingUsers[otherUser?.id][0].updatedAt <
+            10000 &&
+          typingUsers[otherUser?.id][0].msg.length > 0
+        ) {
+          console.log("he typed");
+          setIsTyping(true);
+          setOmsg(typingUsers[otherUser?.id][0].msg);
+          setTimeout(() => {
+            setIsTyping(false);
+            setOmsg("...");
+          }, 4000);
+        }
+      }
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+      // console.log("channel removed1");
+    };
+  }, [chatRoomId, msg]);
+
+  // const onTyping = async (text) => {
+  //   const channel = supabase.channel("user-typing", {
   //     config: {
   //       presence: {
-  //         key: authUser.uid,
+  //         key: auth.currentUser.uid,
   //       },
   //     },
   //   });
-
-  //   channel.on("presence", { event: "sync" }, async () => {
-  //     const onlineUsers = channel.presenceState();
-  //     // console.log("Online users: ", onlineUsers);
-  //     console.log("Online users: ", onlineUsers);
-  //     setOtherUserOnline(onlineUsers[otherUser.id] ? true : false);
-  //     console.log(onlineUsers[otherUser.id] ? true : false);
-  //   });
-
-  //   // channel.on("presence", { event: "join" }, ({ newPresences }) => {
-  //   //   console.log("New users have joined: ", newPresences);
-  //   // });
-
-  //   // channel.on("presence", { event: "leave" }, ({ leftPresences }) => {
-  //   //   console.log("Users have left: ", leftPresences);
-  //   // });
-  //   let inter;
-
   //   channel.subscribe(async (status) => {
   //     if (status === "SUBSCRIBED") {
-  //       inter = setInterval(async () => {
-  //         const status = await channel.track({
-  //           online_at: new Date().toISOString(),
-  //         });
-  //       }, 10000);
+  //       const status = await channel.track({
+  //         typing: true,
+  //         updatedAt: new Date().getTime(),
+  //       });
+  //       console.log(status);
   //     }
   //   });
-  //   return () => {
-  //     clearInterval(inter);
-  //     supabase.removeChannel(channel);
-  //     console.log("channel removed");
-  //   };
-  // }, [chatRoomId]);
+  // };
+
+  // useEffect((text) => {
+  //   console.log("typing");
+  //   const status = await channel.track({
+  //     typing: true,
+  //     updatedAt: new Date().getTime(),
+  //   });
+  //   console.log(status);
+  // }, [typing]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: null,
+
+      headerStyle: {
+        backgroundColor: myColors.pbgc,
+      },
+
+      headerLeft: () => (
+        <CustomHeader
+          image={otherUser?.image}
+          online={false}
+          oUser={otherUser}
+        />
+      ),
+    });
+  }, [otherUser.name]);
 
   if (!chatRoom) {
     return (
@@ -184,8 +217,24 @@ const ChatRoom = () => {
         onRefresh={fetchMessages}
         refreshing={loading}
       />
+      {isTyping && (
+        <View style={styles.list}>
+          <Message
+            message={
+              authUser.uid == "usOWdwZr9XeOwdkIyjbJixXDmC12"
+                ? { text: "Typing: " + omsg }
+                : { text: "..." }
+            }
+            authUser={authUser.uid}
+          />
+        </View>
+      )}
       <View style={{ paddingTop: 10 }}>
-        <ChatInput chatRoom={chatRoom} otherUser={otherUser} />
+        <ChatInput
+          chatRoom={chatRoom}
+          otherUser={otherUser}
+          onTyping={onTyping}
+        />
       </View>
     </View>
   );

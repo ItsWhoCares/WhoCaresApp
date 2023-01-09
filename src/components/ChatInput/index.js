@@ -11,9 +11,7 @@ import {
   getCommonChatRoom,
 } from "../../../supabaseQueries";
 
-// import { sendPushNotification } from "../../notification";
-
-const ChatInput = ({ chatRoom, otherUser }) => {
+const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
   const [message, setMessage] = useState("");
   // const [otherUser, setOtherUser] = useState(OtherUser);
   const [loading, setLoading] = useState(false);
@@ -39,35 +37,6 @@ const ChatInput = ({ chatRoom, otherUser }) => {
       ChatRoomID: chatRoom.id,
       LastMessageID: newMessageData.id,
     });
-    // console.log("Last message updated", res);
-
-    // try {
-    //   const userInfo = await Auth.currentAuthenticatedUser();
-    //   const newMessage = {
-    //     chatroomID: chatRoom.id,
-    //     text: message,
-    //     userID: userInfo.attributes.sub,
-    //   };
-    //   const newMessageData = await API.graphql(
-    //     graphqlOperation(createMessage, { input: newMessage })
-    //   );
-
-    //   setMessage("");
-
-    //   // update the last message in the chat room
-
-    //   await API.graphql(
-    //     graphqlOperation(updateChatRoom, {
-    //       input: {
-    //         _version: chatRoom._version,
-    //         id: chatRoom.id,
-    //         chatRoomLastMessageId: newMessageData.data.createMessage.id,
-    //       },
-    //     })
-    //   );
-    // } catch (e) {
-    //   console.log(e);
-    // }
     setLoading(false);
 
     // send push notification
@@ -96,7 +65,10 @@ const ChatInput = ({ chatRoom, otherUser }) => {
       <AntDesign name="plus" size={24} color="white" />
       <TextInput
         value={message}
-        onChangeText={(text) => setMessage(text)}
+        onChangeText={(text) => {
+          setMessage(text);
+          onTyping(text);
+        }}
         placeholder="Message..."
         placeholderTextColor={"gray"}
         style={styles.input}

@@ -6,7 +6,7 @@ import { useNavigation, CommonActions } from "@react-navigation/native";
 import { auth } from "../../../firebase";
 import { supabase } from "../../initSupabase";
 
-const CustomHeader = ({ image, online, oUser }) => {
+const CustomHeader = ({ image, oUser }) => {
   const navigation = useNavigation();
   const [userOnline, setUserOnline] = React.useState(undefined);
   const [otherUser, setOtherUser] = React.useState(oUser);
@@ -50,12 +50,14 @@ const CustomHeader = ({ image, online, oUser }) => {
         }, 5000);
       }
     });
+
     return () => {
       clearInterval(inter);
       supabase.removeChannel(channel);
       // console.log("channel removed");
     };
   }, [oUser]);
+
 
   return (
     <>

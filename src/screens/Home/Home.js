@@ -74,6 +74,7 @@ const Home = () => {
   }, []);
 
   const fetchChatRooms = async () => {
+    // console.log(supabase.getChannels());
     setRerender(!rerender);
     setLoading(true);
 
@@ -141,9 +142,10 @@ const Home = () => {
   // console.log(chatRooms);
 
   if (
-    chatRooms?.length === 1 &&
-    chatRooms[0]?.ChatRoom?.LastMessageID ===
-      "b15f0db2-87f6-4358-874a-4297ee170240"
+    (chatRooms?.length === 1 &&
+      chatRooms[0]?.ChatRoom?.LastMessageID ===
+        "b15f0db2-87f6-4358-874a-4297ee170240") ||
+    chatRooms?.length === 0
   ) {
     return (
       <ScrollView

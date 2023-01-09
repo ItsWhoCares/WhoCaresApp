@@ -24,13 +24,7 @@ import { addUser } from "../../../supabaseQueries";
 
 const SignIn = () => {
   const route = useRoute();
-  // const [fontsLoaded] = useFonts({
-  //   rrr: Rubik_800ExtraBold,
-  // });
 
-  // if (!fontsLoaded) {
-  //   return null;
-  // }
   const [loading, setLoading] = useState(false);
   const { control, handleSubmit } = useForm({
     defaultValues: {

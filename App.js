@@ -5,7 +5,7 @@ import React from "react";
 import Navigation from "./src/components/Navigation";
 import { myColors } from "./colors";
 
-import * as Notifications from "expo-notifications";
+
 
 import * as NavigationBar from "expo-navigation-bar";
 

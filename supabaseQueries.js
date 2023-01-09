@@ -269,51 +269,51 @@ export const getCommonChatRoom = async ({ authUserID, otherUserID }) => {
   // return data[0].ChatRoom;
 };
 
-// import * as Notifications from "expo-notifications";
-// import * as Device from "expo-device";
-// import { auth } from "./firebase";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import { auth } from "./firebase";
 
-// export const addUserPushToken = async ({
-//   UserID = auth.currentUser.uid,
-//   PushToken = "",
-// }) => {
-//   if (PushToken === "" && Device.isDevice) {
-//     const token = (await Notifications.getExpoPushTokenAsync()).data;
-//     PushToken = token;
-//   }
-//   if (!Device.isDevice) return null;
-//   //check if the user already has a push token
-//   const { data, error } = await supabase
-//     .from("UserToken")
-//     .select("*")
-//     .eq("id", UserID);
-//   if (error) {
-//     console.log(error);
-//     return null;
-//   }
-//   if (data.length === 0) {
-//     //if user does not have a push token, add one
-//     const { data, error } = await supabase
-//       .from("UserToken")
-//       .insert([{ id: UserID, PushToken }]);
-//     if (error) {
-//       console.log(error);
-//       return null;
-//     }
-//     return true;
-//   } else {
-//     //if user already has a push token, update it
-//     const { data, error } = await supabase
-//       .from("UserToken")
-//       .update({ PushToken })
-//       .eq("id", UserID);
-//     if (error) {
-//       console.log(error);
-//       return null;
-//     }
-//     return true;
-//   }
-// };
+export const addUserPushToken = async ({
+  UserID = auth.currentUser.uid,
+  PushToken = "",
+}) => {
+  if (PushToken === "" && Device.isDevice) {
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    PushToken = token;
+  }
+  if (!Device.isDevice) return null;
+  //check if the user already has a push token
+  const { data, error } = await supabase
+    .from("UserToken")
+    .select("*")
+    .eq("id", UserID);
+  if (error) {
+    console.log(error);
+    return null;
+  }
+  if (data.length === 0) {
+    //if user does not have a push token, add one
+    const { data, error } = await supabase
+      .from("UserToken")
+      .insert([{ id: UserID, PushToken }]);
+    if (error) {
+      console.log(error);
+      return null;
+    }
+    return true;
+  } else {
+    //if user already has a push token, update it
+    const { data, error } = await supabase
+      .from("UserToken")
+      .update({ PushToken })
+      .eq("id", UserID);
+    if (error) {
+      console.log(error);
+      return null;
+    }
+    return true;
+  }
+};
 
 export const getUserPushToken = async (UserID) => {
   const { data, error } = await supabase

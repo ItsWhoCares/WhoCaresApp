@@ -34,17 +34,10 @@ const Home = () => {
       nextAppState === "active"
     ) {
       // console.log("App has come to the foreground!");
-
       setRerender(!rerender);
     }
     if (appState.current === "background") {
       console.log("App is in background");
-      // supabase.removeAllChannels();
-      // try {
-      //   navigation.navigate("Home");
-      // } catch (e) {
-      //   console.log(e);
-      // }
     }
     appState.current = nextAppState;
     setAppStateVisible(appState.current);
@@ -83,27 +76,14 @@ const Home = () => {
 
     //sort by last message created_at
     const sortedRooms = chatRooms.sort((a, b) => {
-      // console.log(a);
       return (
         new Date(b.ChatRoom.LastMessage.created_at) -
         new Date(a.ChatRoom.LastMessage.created_at)
       );
     });
-
-    // console.log(JSON.stringify(sortedRooms, null, "\t"));
     setChatRooms([]);
     setChatRooms([...sortedRooms]);
-    // const userInfo = await Auth.currentAuthenticatedUser();
-    // const res = await API.graphql(
-    //   graphqlOperation(listMyChatRooms, { id: userInfo.attributes.sub })
-    // );
-    // const rooms = res?.data?.getUser?.ChatRooms?.items || [];
-    // const sortedRooms = rooms.sort((a, b) => {
-    //   return new Date(b.chatRoom.updatedAt) - new Date(a.chatRoom.updatedAt);
-    // });
-    // // console.log(sortedRooms.length);
-    // setChatRooms(sortedRooms);
-    // console.log(chatRooms);
+
     setLoading(false);
   };
 

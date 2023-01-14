@@ -162,10 +162,15 @@ export const getChatRoomByID = async (id) => {
   return data[0];
 };
 
-export const createMessage = async ({ text, UserID, ChatRoomID }) => {
+export const createMessage = async ({
+  text,
+  UserID,
+  ChatRoomID,
+  isMedia = false,
+}) => {
   const { data, error } = await supabase
     .from("Message")
-    .insert([{ text, UserID, ChatRoomID }])
+    .insert([{ text, UserID, ChatRoomID, isMedia }])
     .select();
   if (error) {
     console.log(error);

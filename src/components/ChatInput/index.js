@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet } from "react-native";
+import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { myColors } from "../../../colors";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 // import { createMessage, updateChatRoom } from "../../graphql/mutations";
@@ -13,6 +13,9 @@ import {
 } from "../../../supabaseQueries";
 
 import { sendPushNotification } from "../../notification";
+import { decode } from "base64-arraybuffer";
+
+import * as ImagePicker from "expo-image-picker";
 
 const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
   const [message, setMessage] = useState("");
@@ -64,10 +67,33 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
   //     otherUserID: "JK2Ww9wLsuTXgFVwj9U6BCxUw704",
   //   });
   // };
+  const [image, setImage] = useState(null);
+  const handleImagePick = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      // aspect: [4, 3],
+      quality: 1,
+      base64: true,
+    });
+
+    // console.log(JSON.stringify(result, null, "\t"));
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      _uploadImage(result.assets[0], chatRoom.id, otherUser.id);
+    }
+  };
 
   return (
     <View style={styles.inputContainer}>
-      <AntDesign name="plus" size={24} color="white" />
+      <AntDesign
+        name="plus"
+        size={24}
+        color="white"
+        onPress={handleImagePick}
+      />
       <TextInput
         value={message}
         onChangeText={(text) => {
@@ -116,5 +142,43 @@ const styles = StyleSheet.create({
     width: 80,
   },
 });
+
+import { supabase } from "../../initSupabase";
+
+const _uploadImage = async (image, chatRoomID, oUserID) => {
+  //upload image to supabase using base64 to array buffer
+  const base64 = image.base64;
+  const buffer = decode(base64);
+  const ext = image.uri.substring(image.uri.lastIndexOf(".") + 1);
+  const filename = image.uri.substring(image.uri.lastIndexOf("/") + 1);
+
+  const { data, error } = await supabase.storage
+    .from(`chatroom`)
+    .upload(`${chatRoomID}/${filename}`, buffer, {
+      contentType: `image/${ext}`,
+    });
+  if (error) {
+    console.log(error);
+    Alert.alert("Error", "Error uploading image");
+    return;
+  }
+  console.log(image.uri.substring(image.uri.lastIndexOf("/") + 1));
+  console.log(data);
+  const res = await createMessage({
+    ChatRoomID: chatRoomID,
+    text: data.path,
+    UserID: auth.currentUser.uid,
+    isMedia: true,
+  });
+  const user = await getUserByID(auth.currentUser.uid);
+  const mes = {
+    title: user.name,
+    body: "Image",
+  };
+  sendPushNotification({
+    UserID: oUserID,
+    message: mes,
+  });
+};
 
 export default ChatInput;

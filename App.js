@@ -5,9 +5,9 @@ import React from "react";
 import Navigation from "./src/components/Navigation";
 import { myColors } from "./colors";
 
-
-
 import * as NavigationBar from "expo-navigation-bar";
+
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const App = () => {
   // Auth.signOut();
@@ -18,10 +18,12 @@ const App = () => {
   }, []);
   NavigationBar.setBackgroundColorAsync("black");
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar barStyle={"light-content"} backgroundColor={"black"} />
-      <Navigation />
-    </SafeAreaView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.root}>
+        <StatusBar barStyle={"light-content"} backgroundColor={"black"} />
+        <Navigation />
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 

@@ -73,7 +73,7 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
-      // aspect: [4, 3],
+      aspect: [4, 3],
       quality: 1,
       base64: true,
     });

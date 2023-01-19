@@ -179,6 +179,49 @@ export const createMessage = async ({
   return data[0];
 };
 
+export const deleteMessage = async ({ id, isMedia = false }) => {
+  if (isMedia) {
+    const { data, error } = await supabase
+      .from("Message")
+      .select("*")
+      .eq("id", id);
+    if (error) {
+      console.log(error);
+      return null;
+    }
+
+    const { data: data2, error: error2 } = await supabase.storage
+      .from("chatroom")
+      .remove([data[0].text]);
+    if (error2) {
+      console.log(error2);
+      return null;
+    }
+
+    const { data: data1, error: error1 } = await supabase
+      .from("Message")
+      .update({ text: "⦸  This message was deleted", isMedia: false })
+      .eq("id", id)
+      .select();
+    if (error1) {
+      console.log(error1);
+      return null;
+    }
+    return data1[0];
+  } else {
+    const { data, error } = await supabase
+      .from("Message")
+      .update({ text: "⦸  This message was deleted" })
+      .eq("id", id)
+      .select();
+    if (error) {
+      console.log(error);
+      return null;
+    }
+    return data[0];
+  }
+};
+
 export const updateChatRoomLastMessage = async ({
   ChatRoomID,
   LastMessageID,

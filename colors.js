@@ -3,7 +3,10 @@ module.exports.myColors = {
   sbgc: "black",
   secondaryText: "#707271",
   PrimaryMessage: "#f6c445", //"#fccc63", //"#4c68d7",
+  PrimaryMessagePressed: "#ffd859",
+
   SecondaryMessage: "#303134",
+  SecondaryMessagePressed: "#444548",
   inputBox: "#303134",
   inputBoxText: "white",
   inputBoxInsideText: "#707271",

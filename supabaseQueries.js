@@ -374,3 +374,48 @@ export const getUserPushToken = async (UserID) => {
   }
   return data[0];
 };
+
+export const updateUserChatRoomLastSeen = async ({
+  ChatRoomID,
+  LastSeenMessageID,
+  UserID,
+}) => {
+  const { data, error } = await supabase
+    .from("UserChatRoom")
+    .update({ LastSeenMessageID, LastSeenAt: new Date() })
+    .eq("ChatRoomID", ChatRoomID)
+    .eq("UserID", UserID)
+    .select();
+  if (error) {
+    console.log(error);
+    return null;
+  }
+  return data[0];
+};
+
+export const getUserChatRoomLastSeen = async ({ ChatRoomID, UserID }) => {
+  const { data, error } = await supabase
+    .from("UserChatRoom")
+    .select("*")
+    .eq("ChatRoomID", ChatRoomID)
+    .eq("UserID", UserID);
+  if (error) {
+    console.log(error);
+    return null;
+  }
+  return data[0]?.LastSeenAt;
+};
+
+export const updateUserChatRoomLastSeenAt = async ({ ChatRoomID, UserID }) => {
+  const { data, error } = await supabase
+    .from("UserChatRoom")
+    .update({ LastSeenAt: new Date() })
+    .eq("ChatRoomID", ChatRoomID)
+    .eq("UserID", UserID)
+    .select();
+  if (error) {
+    console.log(error);
+    return null;
+  }
+  return data[0];
+};

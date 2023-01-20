@@ -32,7 +32,7 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
     // send the message to the backend
     const newMessageData = await createMessage({
       ChatRoomID: chatRoom.id,
-      text: message,
+      text: message.trim(),
       UserID: auth.currentUser.uid,
     });
     // console.log("New Message", newMessageData);
@@ -67,7 +67,7 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
   //     otherUserID: "JK2Ww9wLsuTXgFVwj9U6BCxUw704",
   //   });
   // };
-  const [image, setImage] = useState(null);
+  // const [image, setImage] = useState(null);
   const handleImagePick = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -81,7 +81,7 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
     // console.log(JSON.stringify(result, null, "\t"));
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      // setImage(result.assets[0].uri);
       _uploadImage(result.assets[0], chatRoom.id, otherUser.id);
     }
   };
@@ -102,7 +102,13 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
         }}
         placeholder="Message..."
         placeholderTextColor={"gray"}
-        style={styles.input}
+        style={[
+          styles.input,
+          { height: Math.max(40, message.length * 0.5 + 40) },
+        ]}
+        returnKeyType="send"
+        onSubmitEditing={handleSend}
+        multiline={true}
       />
       <MaterialIcons
         onPress={handleSend}
@@ -147,9 +153,14 @@ import { supabase } from "../../initSupabase";
 
 const _uploadImage = async (image, chatRoomID, oUserID) => {
   //upload image to supabase using base64 to array buffer
+  const ext = image.uri.substring(image.uri.lastIndexOf(".") + 1);
+  if (ext != "png" || ext != "jpg" || ext != "jpeg") {
+    Alert.alert("Error", "Only png, jpg, and jpeg are supported");
+    return;
+  }
   const base64 = image.base64;
   const buffer = decode(base64);
-  const ext = image.uri.substring(image.uri.lastIndexOf(".") + 1);
+
   const filename = image.uri.substring(image.uri.lastIndexOf("/") + 1);
 
   const { data, error } = await supabase.storage

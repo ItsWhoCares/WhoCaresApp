@@ -121,7 +121,9 @@ const ChatListItem = ({ chat, onPress }) => {
           )}
         </View>
 
-        <Text style={styles.text}>{chatRoom?.ChatRoom.LastMessage?.text}</Text>
+        <Text style={styles.text} numberOfLines={2}>
+          {chatRoom?.ChatRoom.LastMessage?.text}
+        </Text>
       </View>
     </Pressable>
   );

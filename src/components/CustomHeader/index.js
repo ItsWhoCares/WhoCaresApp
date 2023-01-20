@@ -6,10 +6,54 @@ import { useNavigation, CommonActions } from "@react-navigation/native";
 import { auth } from "../../../firebase";
 import { supabase } from "../../initSupabase";
 
+import {
+  getUserChatRoomLastSeen,
+  getCommonChatRoom,
+  updateUserChatRoomLastSeenAt,
+} from "../../../supabaseQueries";
+// import { set } from "react-hook-form";
+
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { myColors } from "../../../colors";
+dayjs.extend(relativeTime);
+
 const CustomHeader = ({ image, oUser }) => {
   const navigation = useNavigation();
   const [userOnline, setUserOnline] = React.useState(undefined);
   const [otherUser, setOtherUser] = React.useState(oUser);
+  const [lastSeenAt, setLastSeenAt] = React.useState(null);
+  const [chatRoom, setChatRoom] = React.useState(null);
+
+  const fetchLastSeen = async (who) => {
+    // console.log(who);
+    if (!chatRoom) {
+      const res = await getCommonChatRoom({
+        authUserID: auth.currentUser.uid,
+        otherUserID: otherUser.id,
+      });
+      setChatRoom(res);
+      // console.log(chatRoom?.id, "chat");
+    }
+
+    if (chatRoom) {
+      const res = await getUserChatRoomLastSeen({
+        UserID: otherUser.id,
+        ChatRoomID: chatRoom?.id,
+      });
+      setLastSeenAt(res);
+      // console.log(lastSeenAt, "lastSeen");
+
+      updateUserChatRoomLastSeenAt({
+        UserID: auth.currentUser.uid,
+        ChatRoomID: chatRoom?.id,
+      });
+    }
+  };
+
+  React.useEffect(() => {
+    fetchLastSeen("effetc");
+  }, [chatRoom]);
 
   React.useEffect(() => {
     // Supabase client setup
@@ -36,6 +80,7 @@ const CustomHeader = ({ image, oUser }) => {
         );
       } else {
         setUserOnline(false);
+        fetchLastSeen();
       }
       // console.log(onlineUsers[otherUser.id] ? true : false);
     });
@@ -57,7 +102,6 @@ const CustomHeader = ({ image, oUser }) => {
       // console.log("channel removed");
     };
   }, [oUser]);
-
 
   return (
     <>
@@ -83,7 +127,15 @@ const CustomHeader = ({ image, oUser }) => {
         <Text style={{ color: "white", fontWeight: "bold", fontSize: 20 }}>
           {otherUser.name}
         </Text>
-        {userOnline && <Text style={styles.online}>Online</Text>}
+        {userOnline ? (
+          <Text style={styles.online}>Online</Text>
+        ) : (
+          lastSeenAt && (
+            <Text style={styles.lastSeen}>
+              {"Last seen " + dayjs(lastSeenAt).fromNow()}
+            </Text>
+          )
+        )}
       </View>
     </>
   );
@@ -96,9 +148,14 @@ const styles = StyleSheet.create({
     // padding: 10,
   },
   online: {
-    color: "green",
+    color: myColors.PrimaryMessage,
     fontSize: 10,
     fontWeight: "bold",
+  },
+  lastSeen: {
+    color: "white",
+    fontSize: 10,
+    // fontWeight: "bold",
   },
 });
 

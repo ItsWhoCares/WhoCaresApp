@@ -130,8 +130,15 @@ const Message = ({ message, authUser }) => {
           style={{ width: width * 0.7, height: 200, borderRadius: 10 }}
           source={{ uri: getImageUri() }}
         />
-        <Text style={styles.time}>
-          {dayjs(message.created_at).format("hh:mm")}
+        <Text
+          style={[
+            styles.time,
+            {
+              paddingTop: 5,
+              paddingBottom: 0,
+            },
+          ]}>
+          {dayjs(message.created_at).format("hh:mm a")}
         </Text>
       </Pressable>
     );
@@ -156,19 +163,6 @@ const Message = ({ message, authUser }) => {
       </View>
     );
   };
-
-  // const right = () => {
-  //   return (
-  //     <View
-  //       style={{
-  //         backgroundColor: myColors.pbgc,
-  //         width: "10%",
-  //         height: 100,
-  //       }}>
-  //       <Text>Right</Text>
-  //     </View>
-  //   );
-  // };
 
   if (isMyMessage()) {
     return (
@@ -204,7 +198,7 @@ const Message = ({ message, authUser }) => {
           }>
           <Text style={styles.text}>{message.text}</Text>
           <Text style={styles.time}>
-            {dayjs(message.created_at).format("hh:mm")}
+            {dayjs(message.created_at).format("hh:mm a")}
           </Text>
         </Pressable>
       </Swipeable>
@@ -247,7 +241,7 @@ const Message = ({ message, authUser }) => {
           }>
           <Text style={styles.text}>{message.text}</Text>
           <Text style={styles.time}>
-            {dayjs(message.created_at).format("hh:mm")}
+            {dayjs(message.created_at).format("hh:mm a")}
           </Text>
         </Pressable>
       </Swipeable>
@@ -258,9 +252,10 @@ const Message = ({ message, authUser }) => {
 const styles = StyleSheet.create({
   root: {
     margin: 5,
-    padding: 10,
+    // padding: 10,
     borderRadius: 10,
     maxWidth: "80%",
+    minWidth: "20%",
     //shadow
     shadowColor: "#fff",
     shadowOffset: {
@@ -273,10 +268,13 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   text: {
+    paddingTop: 10,
+    paddingHorizontal: 10,
     color: "white",
   },
   time: {
-    paddingTop: 5,
+    paddingBottom: 5,
+    paddingRight: 10,
     fontSize: 10,
     color: myColors.secondaryText,
     alignSelf: "flex-end",

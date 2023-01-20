@@ -21,7 +21,14 @@ import { supabase } from "../../initSupabase";
 import {
   getChatRoomByID,
   listMessagesByChatRoom,
+  updateUserChatRoomLastSeen,
+  getUserChatRoomLastSeen,
+  updateUserChatRoomLastSeenAt,
 } from "../../../supabaseQueries";
+
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 const ChatRoom = () => {
   const route = useRoute();
@@ -69,6 +76,17 @@ const ChatRoom = () => {
     try {
       const messagesData = await listMessagesByChatRoom(chatRoomId);
       setMessages(messagesData);
+      const lmsgOuser = messagesData.find(
+        (msg) => msg.UserID === otherUser?.id
+      );
+      console.log(lmsgOuser);
+
+      updateUserChatRoomLastSeen({
+        ChatRoomID: chatRoomId,
+        UserID: auth.currentUser.uid,
+        LastSeenMessageID: lmsgOuser.id,
+      });
+      // console.log(dayjs("2023-01-20T10:23:33.705+00:00").format("hh:mm A"));
     } catch (e) {
       console.log(e);
     } finally {
@@ -123,6 +141,12 @@ const ChatRoom = () => {
           updatedAt: new Date().getTime(),
         });
       }
+    });
+    channel.on("presence", { event: "leave" }, async () => {
+      updateUserChatRoomLastSeenAt({
+        ChatRoomID: chatRoomId,
+        UserID: auth.currentUser.uid,
+      });
     });
     channel.on("presence", { event: "sync" }, async () => {
       const typingUsers = channel.presenceState();
@@ -199,11 +223,7 @@ const ChatRoom = () => {
       },
 
       headerLeft: () => (
-        <CustomHeader
-          image={otherUser?.image}
-          online={false}
-          oUser={otherUser}
-        />
+        <CustomHeader image={otherUser?.image} oUser={otherUser} />
       ),
     });
   }, [otherUser.name]);

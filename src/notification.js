@@ -67,5 +67,5 @@ export const sendPushNotification = async ({ UserID, message }) => {
     },
     body: JSON.stringify(message1),
   });
-  console.log(JSON.stringify(response, null, "\t"));
+  // console.log(JSON.stringify(response, null, "\t"));
 };

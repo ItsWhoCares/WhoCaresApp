@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   AppState,
+  useWindowDimensions,
 } from "react-native";
 import React from "react";
 import { useRoute } from "@react-navigation/native";
@@ -24,6 +25,7 @@ import {
   updateUserChatRoomLastSeen,
   getUserChatRoomLastSeen,
   updateUserChatRoomLastSeenAt,
+  getMessageByID,
 } from "../../../supabaseQueries";
 
 import dayjs from "dayjs";
@@ -38,12 +40,14 @@ const ChatRoom = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [replying, setReplying] = useState(null);
   useEffect(() => {
     setAuthUser(auth.currentUser);
     // Auth.currentAuthenticatedUser().then((user) => setAuthUser(user));
     // console.log(authUser?.attributes?.sub);
   }, [chatRoom]);
 
+  const { width } = useWindowDimensions();
   const [otherUserOnline, setOtherUserOnline] = useState(false);
 
   const otherUser = route.params?.user;
@@ -71,15 +75,15 @@ const ChatRoom = () => {
   }, []);
 
   //fetch messages
-  const fetchMessages = async () => {
+  const fetchMessages = async (noLimit = false) => {
     setLoading(true);
     try {
-      const messagesData = await listMessagesByChatRoom(chatRoomId);
+      const messagesData = await listMessagesByChatRoom(chatRoomId, noLimit);
       setMessages(messagesData);
       const lmsgOuser = messagesData.find(
         (msg) => msg.UserID === otherUser?.id
       );
-      console.log(lmsgOuser);
+      // console.log(lmsgOuser);
 
       updateUserChatRoomLastSeen({
         ChatRoomID: chatRoomId,
@@ -106,9 +110,39 @@ const ChatRoom = () => {
           table: "Message",
           filter: `ChatRoomID=eq.${chatRoomId}`,
         },
-        (payload) => {
+        async (payload) => {
           // console.log("Message payload", payload);
-          setMessages((prevMessages) => [payload.new, ...prevMessages]);
+          setIsTyping(false);
+          const res = await getMessageByID(payload.new.id);
+          setMessages((prevMessages) => [res, ...prevMessages]);
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "Message",
+          filter: `ChatRoomID=eq.${chatRoomId}`,
+        },
+        async (payload) => {
+          // console.log("Message payload", payload);
+          setIsTyping(false);
+          //Update the deleted message only
+          setMessages((prevMessages) => {
+            //find the index of the message to be updated
+            const index = prevMessages.findIndex(
+              (msg) => msg.id === payload.new.id
+            );
+            //if the message is found, update it
+            if (index >= 0) {
+              const updatedMessages = [...prevMessages];
+              updatedMessages[index] = payload.new;
+              return updatedMessages;
+            }
+            //if the message is not found, return the previous messages
+            return prevMessages;
+          });
         }
       )
       .subscribe();
@@ -177,34 +211,6 @@ const ChatRoom = () => {
     };
   }, [chatRoomId, msg]);
 
-  // const onTyping = async (text) => {
-  //   const channel = supabase.channel("user-typing", {
-  //     config: {
-  //       presence: {
-  //         key: auth.currentUser.uid,
-  //       },
-  //     },
-  //   });
-  //   channel.subscribe(async (status) => {
-  //     if (status === "SUBSCRIBED") {
-  //       const status = await channel.track({
-  //         typing: true,
-  //         updatedAt: new Date().getTime(),
-  //       });
-  //       console.log(status);
-  //     }
-  //   });
-  // };
-
-  // useEffect((text) => {
-  //   console.log("typing");
-  //   const status = await channel.track({
-  //     typing: true,
-  //     updatedAt: new Date().getTime(),
-  //   });
-  //   console.log(status);
-  // }, [typing]);
-
   const _handleFocus = (state) => {
     if (state === "active") fetchMessages();
   };
@@ -213,6 +219,14 @@ const ChatRoom = () => {
     const sub = AppState.addEventListener("change", _handleFocus);
     return () => sub.remove();
   }, []);
+
+  const handleReplying = (msg) => {
+    setReplying(msg);
+    console.log(msg);
+  };
+  const handleReplyingCancel = () => {
+    setReplying(null);
+  };
 
   useEffect(() => {
     navigation.setOptions({
@@ -235,17 +249,34 @@ const ChatRoom = () => {
       </View>
     );
   }
+
+  const getItemLayout = (data, index) => ({
+    length: width * 0.8,
+    offset: 50 * index,
+    index,
+  });
+  const renderItem = ({ item }) => (
+    <Message
+      key={item.id}
+      message={item}
+      authUser={authUser.uid}
+      handleReplying={handleReplying}
+    />
+  );
+
   return (
     <View style={styles.root}>
       <FlatList
         data={messages}
-        renderItem={({ item }) => (
-          <Message message={item} authUser={authUser.uid} />
-        )}
+        renderItem={renderItem}
         style={styles.list}
         inverted
         onRefresh={fetchMessages}
         refreshing={loading}
+        getItemLayout={getItemLayout}
+        onEndReached={() => {
+          fetchMessages(true);
+        }}
       />
       {isTyping && (
         <View style={styles.list}>
@@ -264,6 +295,8 @@ const ChatRoom = () => {
           chatRoom={chatRoom}
           otherUser={otherUser}
           onTyping={onTyping}
+          replying={replying}
+          handleReplyingCancel={handleReplyingCancel}
         />
       </View>
     </View>

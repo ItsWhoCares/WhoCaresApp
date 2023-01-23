@@ -167,10 +167,11 @@ export const createMessage = async ({
   UserID,
   ChatRoomID,
   isMedia = false,
+  ReplyMessageID = null,
 }) => {
   const { data, error } = await supabase
     .from("Message")
-    .insert([{ text, UserID, ChatRoomID, isMedia }])
+    .insert([{ text, UserID, ChatRoomID, isMedia, ReplyMessageID }])
     .select();
   if (error) {
     console.log(error);
@@ -200,7 +201,11 @@ export const deleteMessage = async ({ id, isMedia = false }) => {
 
     const { data: data1, error: error1 } = await supabase
       .from("Message")
-      .update({ text: "⦸  This message was deleted", isMedia: false })
+      .update({
+        text: "⦸  This message was deleted",
+        isMedia: false,
+        ReplyMessageID: null,
+      })
       .eq("id", id)
       .select();
     if (error1) {
@@ -211,7 +216,7 @@ export const deleteMessage = async ({ id, isMedia = false }) => {
   } else {
     const { data, error } = await supabase
       .from("Message")
-      .update({ text: "⦸  This message was deleted" })
+      .update({ text: "⦸  This message was deleted", ReplyMessageID: null })
       .eq("id", id)
       .select();
     if (error) {
@@ -238,12 +243,25 @@ export const updateChatRoomLastMessage = async ({
   return data[0];
 };
 
-export const listMessagesByChatRoom = async (ChatRoomID) => {
+export const listMessagesByChatRoom = async (ChatRoomID, noLimit = false) => {
+  if (noLimit) {
+    const { data, error } = await supabase
+      .from("Message")
+      .select("*, ReplyMessage:ReplyMessageID(*)")
+      .eq("ChatRoomID", ChatRoomID)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.log(error);
+      return [];
+    }
+    return data;
+  }
   const { data, error } = await supabase
     .from("Message")
-    .select("*")
+    .select("*, ReplyMessage:ReplyMessageID(*)")
     .eq("ChatRoomID", ChatRoomID)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(50);
   if (error) {
     console.log(error);
     return [];
@@ -413,6 +431,42 @@ export const updateUserChatRoomLastSeenAt = async ({ ChatRoomID, UserID }) => {
     .eq("ChatRoomID", ChatRoomID)
     .eq("UserID", UserID)
     .select();
+  if (error) {
+    console.log(error);
+    return null;
+  }
+  return data[0];
+};
+
+export const test = async (UserID) => {
+  // const { data, error } = await supabase
+  //   .from("Message")
+  //   .select("*, ReplyMessage:ReplyMessageID(*)")
+  //   .eq("ChatRoomID", ChatRoomID)
+  //   .order("created_at", { ascending: false });
+  // if (error) {
+  //   console.log(error);
+  //   return [];
+  // }
+  //list all chatrooms that the user is in
+  const { data, error } = await supabase
+    .from("UserChatRoom")
+    .select("ChatRoom(*)")
+    .eq("UserID", UserID);
+  if (error) {
+    console.log(error);
+    return [];
+  }
+
+  console.log(JSON.stringify(data[0], null, "\t"));
+  return data;
+};
+
+export const getMessageByID = async (MessageID) => {
+  const { data, error } = await supabase
+    .from("Message")
+    .select("*, ReplyMessage:ReplyMessageID(*)")
+    .eq("id", MessageID);
   if (error) {
     console.log(error);
     return null;

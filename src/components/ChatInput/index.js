@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Alert,
+  Text,
+  Pressable,
+} from "react-native";
 import { myColors } from "../../../colors";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 // import { createMessage, updateChatRoom } from "../../graphql/mutations";
@@ -10,6 +17,7 @@ import {
   updateChatRoomLastMessage,
   getCommonChatRoom,
   getUserByID,
+  test,
 } from "../../../supabaseQueries";
 
 import { sendPushNotification } from "../../notification";
@@ -17,15 +25,30 @@ import { decode } from "base64-arraybuffer";
 
 import * as ImagePicker from "expo-image-picker";
 
-const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
+const ChatInput = ({
+  chatRoom,
+  otherUser,
+  onTyping,
+  replying,
+  handleReplyingCancel,
+}) => {
   const [message, setMessage] = useState("");
   // const [otherUser, setOtherUser] = useState(OtherUser);
   const [loading, setLoading] = useState(false);
+  // const [reply, setReply] = useState(replying);
 
   const handleSend = async () => {
+    // test(auth.currentUser.uid);
+    // return;
+    // console.log("replying", replying);
+    // console.log("message", message);
+    // console.log("loading", loading);
+    // return;
     if (loading) return;
     setLoading(true);
     if (message === "") return;
+    // console.log("Sending: ", message);
+
     // send the message to the chat server
     // console.warn(`Sending: ${message}`);
 
@@ -34,9 +57,11 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
       ChatRoomID: chatRoom.id,
       text: message.trim(),
       UserID: auth.currentUser.uid,
+      ReplyMessageID: replying?.id,
     });
     // console.log("New Message", newMessageData);
     setMessage("");
+    handleReplyingCancel();
 
     //Update the last message in the chat room
     const res = await updateChatRoomLastMessage({
@@ -87,36 +112,65 @@ const ChatInput = ({ chatRoom, otherUser, onTyping }) => {
   };
 
   return (
-    <View style={styles.inputContainer}>
-      <AntDesign
-        name="plus"
-        size={24}
-        color="white"
-        onPress={handleImagePick}
-      />
-      <TextInput
-        value={message}
-        onChangeText={(text) => {
-          setMessage(text);
-          onTyping(text);
-        }}
-        placeholder="Message..."
-        placeholderTextColor={"gray"}
-        style={[
-          styles.input,
-          { height: Math.max(40, message.length * 0.5 + 40) },
-        ]}
-        returnKeyType="send"
-        onSubmitEditing={handleSend}
-        multiline={true}
-      />
-      <MaterialIcons
-        onPress={handleSend}
-        name="send"
-        size={24}
-        color="royalblue"
-      />
-    </View>
+    <>
+      {replying && (
+        <View style={styles.replyContainer}>
+          <View>
+            <Text style={styles.reply}>{"Replying to " + otherUser?.name}</Text>
+            <Text style={{ color: "white", fontSize: 12 }}>
+              {replying?.text}
+            </Text>
+          </View>
+          <View style={styles.iconClose}>
+            <AntDesign
+              // style={{
+              //   backgroundColor: myColors.containerPressed,
+              //   borderRadius: 24,
+              // }}
+              name="close"
+              size={24}
+              color="white"
+              onPress={() => handleReplyingCancel()}
+            />
+          </View>
+        </View>
+      )}
+      <View style={styles.inputContainer}>
+        <AntDesign
+          name="plus"
+          size={24}
+          color="white"
+          onPress={handleImagePick}
+        />
+        <TextInput
+          value={message}
+          onChangeText={(text) => {
+            setMessage(text);
+            onTyping(text);
+          }}
+          placeholder="Message..."
+          placeholderTextColor={"gray"}
+          style={[
+            styles.input,
+            {
+              height: Math.max(
+                40,
+                Math.min(message.split(/\r\n|\r|\n/).length * 1.5 + 40, 60)
+              ),
+            },
+          ]}
+          returnKeyType="send"
+          onSubmitEditing={handleSend}
+          multiline={true}
+        />
+        <MaterialIcons
+          onPress={handleSend}
+          name="send"
+          size={24}
+          color="royalblue"
+        />
+      </View>
+    </>
   );
 };
 
@@ -147,6 +201,35 @@ const styles = StyleSheet.create({
   button: {
     width: 80,
   },
+  replyContainer: {
+    flexDirection: "row",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: myColors.secondaryText,
+    padding: 10,
+    paddingLeft: 15,
+  },
+  reply: {
+    fontSize: 12,
+    color: myColors.secondaryText,
+  },
+  iconClose: {
+    marginLeft: "auto",
+    justifyContent: "center",
+    alignContent: "center",
+    // width: 50,
+    padding: 8,
+    borderRadius: 24,
+    // backgroundColor: myColors.containerPressed,
+  },
+  // iconClosePressed:{
+  //     marginLeft: "auto",
+  //     justifyContent: "center",
+  //     alignContent: "center",
+  //     // width: 50,
+  //     padding: 8,
+  //     borderRadius: 24,
+  //     backgroundColor: myColors.containerPressed,
+  //   }
 });
 
 import { supabase } from "../../initSupabase";
@@ -154,7 +237,8 @@ import { supabase } from "../../initSupabase";
 const _uploadImage = async (image, chatRoomID, oUserID) => {
   //upload image to supabase using base64 to array buffer
   const ext = image.uri.substring(image.uri.lastIndexOf(".") + 1);
-  if (ext != "png" || ext != "jpg" || ext != "jpeg") {
+  console.log(ext);
+  if (ext != "png" && ext != "jpg" && ext != "jpeg") {
     Alert.alert("Error", "Only png, jpg, and jpeg are supported");
     return;
   }

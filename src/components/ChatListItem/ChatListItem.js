@@ -139,6 +139,8 @@ const styles = StyleSheet.create({
     // backgroundColor: myColors.containerPressed,
     borderRadius: 10,
     padding: 5,
+    // borderBottomWidth: StyleSheet.hairlineWidth,
+    // borderBottomColor: "grey",
   },
   containerPressed: {
     backgroundColor: myColors.containerPressed,

@@ -6,14 +6,40 @@ import { useNavigation } from "@react-navigation/native";
 import { AntDesign } from "@expo/vector-icons";
 import ChatInput from "../../components/ChatInput";
 
-
 import { listUsers } from "../../../supabaseQueries";
 
 const Search = () => {
   const navigation = useNavigation();
   const [SearchText, setSearchText] = React.useState("");
+
+  const [users, setUsers] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const users = await listUsers();
+      setUsers(users);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
+  };
   const querySearchText = (text) => {
-    setSearchText(text);
+    console.log(text);
+    if (text.length === 0) {
+      fetchUsers();
+      return;
+    }
+    // setSearchText(text);
+    //filter users
+    const filteredUsers = users.filter((item) => {
+      return item.name.toLowerCase().includes(text.toLowerCase());
+    });
+    console.log(users);
+    console.log(JSON.stringify(filteredUsers, null, "\t"));
+    setUsers([]);
+    setUsers(filteredUsers);
   };
 
   //might need to use useLayoutEffect
@@ -35,7 +61,7 @@ const Search = () => {
           <View style={styles.inputContainer}>
             <TextInput
               // autoFocus={true}
-              value={SearchText}
+              // value={SearchText}
               onChangeText={(text) => querySearchText(text)}
               placeholder="Search..."
               placeholderTextColor={"gray"}
@@ -45,46 +71,12 @@ const Search = () => {
         </>
       ),
     });
-  }, [SearchText]);
+  }, [users]);
 
-  const [users, setUsers] = React.useState([]);
-  const [loading, setLoading] = React.useState(false);
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const users = await listUsers();
-      setUsers(users);
-      // API.graphql(graphqlOperation(listUsers)).then((res) => {
-      //   setUsers(res.data.listUsers.items);
-      // });
-      // console.log(users);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
-    }
-  };
   useEffect(() => {
     fetchUsers();
-    //list all users
-    // const fetchUsers = async () => {
-    //   try {
-    //     const usersData = await API.graphql(graphqlOperation(listUsers));
-    //     setUsers(usersData?.data?.searchUsers?.items);
-    //     console.log(users);
-    //   } catch (e) {
-    //     console.log(e);
-    //   }
-    // };
-    // fetchUsers();
-  }, [SearchText]);
-
-  //log all users
-  // useEffect(() => {
-  //   API.graphql(graphqlOperation(listUsers)).then((res) => {
-  //     console.log(res.data.listUsers.items);
-  //   });
-  // }, []);
+    console.log("fetching users");
+  }, []);
 
   return (
     <View style={styles.root}>

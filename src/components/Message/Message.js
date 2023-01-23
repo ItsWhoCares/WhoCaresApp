@@ -189,6 +189,8 @@ const Message = ({ message, authUser, handleReplying }) => {
         ref={swipeComponent}
         renderRightActions={isMyMessage ? swipeContent : null}
         renderLeftActions={isMyMessage ? null : swipeContent}
+        overshootLeft={false}
+        overshootRight={false}
         overshootFriction={10}
         onSwipeableWillOpen={_handleReply}>
         <View
@@ -260,6 +262,8 @@ const Message = ({ message, authUser, handleReplying }) => {
       renderRightActions={isMyMessage ? swipeContent : null}
       renderLeftActions={isMyMessage ? null : swipeContent}
       overshootFriction={10}
+      overshootLeft={false}
+      overshootRight={false}
       onSwipeableWillOpen={_handleReply}>
       <Pressable
         onLongPress={_handleDeleteMessage}

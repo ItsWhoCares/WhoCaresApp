@@ -32,6 +32,8 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
+import { FlashList } from "@shopify/flash-list";
+
 const ChatRoom = () => {
   const route = useRoute();
   const navigation = useNavigation();
@@ -47,7 +49,7 @@ const ChatRoom = () => {
     // console.log(authUser?.attributes?.sub);
   }, [chatRoom]);
 
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [otherUserOnline, setOtherUserOnline] = useState(false);
 
   const otherUser = route.params?.user;
@@ -75,10 +77,10 @@ const ChatRoom = () => {
   }, []);
 
   //fetch messages
-  const fetchMessages = async (noLimit = false) => {
+  const fetchMessages = async () => {
     setLoading(true);
     try {
-      const messagesData = await listMessagesByChatRoom(chatRoomId, noLimit);
+      const messagesData = await listMessagesByChatRoom(chatRoomId, true);
       setMessages(messagesData);
       const lmsgOuser = messagesData.find(
         (msg) => msg.UserID === otherUser?.id
@@ -257,7 +259,6 @@ const ChatRoom = () => {
   });
   const renderItem = ({ item }) => (
     <Message
-      key={item.id}
       message={item}
       authUser={authUser.uid}
       handleReplying={handleReplying}
@@ -266,18 +267,19 @@ const ChatRoom = () => {
 
   return (
     <View style={styles.root}>
-      <FlatList
-        data={messages}
-        renderItem={renderItem}
-        style={styles.list}
-        inverted
-        onRefresh={fetchMessages}
-        refreshing={loading}
-        getItemLayout={getItemLayout}
-        onEndReached={() => {
-          fetchMessages(true);
-        }}
-      />
+      <View style={styles.list}>
+        <FlashList
+          data={messages}
+          renderItem={renderItem}
+          inverted
+          onRefresh={fetchMessages}
+          refreshing={loading}
+          estimatedItemSize={100}
+          // estimatedListSize={(height, width)}
+          drawDistance={200}
+        />
+      </View>
+
       {isTyping && (
         <View style={styles.list}>
           <Message
@@ -309,6 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: myColors.pbgc,
   },
   list: {
+    flex: 1,
     paddingHorizontal: 10,
   },
 });

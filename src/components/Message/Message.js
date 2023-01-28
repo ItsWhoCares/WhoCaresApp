@@ -7,7 +7,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, memo } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { myColors } from "../../../colors";
@@ -19,6 +19,7 @@ import { deleteMessage } from "../../../supabaseQueries";
 import { Swipeable } from "react-native-gesture-handler";
 
 const Message = ({ message, authUser, handleReplying }) => {
+  // console.log("rerendering message", message.text);
   const [rerender, setRerender] = useState(false);
 
   const swipeComponent = useRef(null);
@@ -394,4 +395,4 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 });
-export default Message;
+export default memo(Message);

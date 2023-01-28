@@ -9,7 +9,7 @@ import {
   AppState,
   useWindowDimensions,
 } from "react-native";
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import { useRoute } from "@react-navigation/native";
 import Message from "../../components/Message";
 import ChatInput from "../../components/ChatInput";
@@ -41,7 +41,7 @@ const ChatRoom = () => {
   const [authUser, setAuthUser] = useState(auth.currentUser);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
+  //const [isTyping, setIsTyping] = useState(false);
   const [replying, setReplying] = useState(null);
   useEffect(() => {
     setAuthUser(auth.currentUser);
@@ -114,7 +114,7 @@ const ChatRoom = () => {
         },
         async (payload) => {
           // console.log("Message payload", payload);
-          setIsTyping(false);
+          //setIsTyping(false);
           const res = await getMessageByID(payload.new.id);
           setMessages((prevMessages) => [res, ...prevMessages]);
         }
@@ -129,7 +129,7 @@ const ChatRoom = () => {
         },
         async (payload) => {
           // console.log("Message payload", payload);
-          setIsTyping(false);
+          //setIsTyping(false);
           //Update the deleted message only
           setMessages((prevMessages) => {
             //find the index of the message to be updated
@@ -151,67 +151,71 @@ const ChatRoom = () => {
 
     // console.log(subscription);
 
-    return () => supabase.removeChannel(subscription);
+    return () => {
+      supabase.removeChannel(subscription);
+      supabase.removeAllChannels();
+      console.log("Removed subscription");
+    };
   }, [chatRoomId]);
-
+  const chatInput = useRef(null);
   const [msg, setMsg] = useState("");
-  const [omsg, setOmsg] = useState("");
+  //const [omsg, setOmsg] = useState("");
   const onTyping = (text) => {
-    setMsg(text);
-    // console.log(msg);
+    // setMsg(text);
+    updateMyTypingStatus(chatRoomId, text);
   };
 
-  useEffect(() => {
-    const channel = supabase.channel("user-typing", {
-      config: {
-        presence: {
-          key: auth.currentUser.uid,
-        },
-      },
-    });
-    channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        const status = await channel.track({
-          typing: true,
-          msg: msg,
-          updatedAt: new Date().getTime(),
-        });
-      }
-    });
-    channel.on("presence", { event: "leave" }, async () => {
-      updateUserChatRoomLastSeenAt({
-        ChatRoomID: chatRoomId,
-        UserID: auth.currentUser.uid,
-      });
-    });
-    channel.on("presence", { event: "sync" }, async () => {
-      const typingUsers = channel.presenceState();
-      if (typingUsers.hasOwnProperty(otherUser?.id)) {
-        // console.log(
-        //   new Date().getTime() - typingUsers[otherUser.id][0].updatedAt,
-        //   typingUsers[otherUser?.id][0].msg
-        // );
-        if (
-          new Date().getTime() - typingUsers[otherUser?.id][0].updatedAt <
-            10000 &&
-          typingUsers[otherUser?.id][0].msg.length > 0
-        ) {
-          // console.log("he typed");
-          setIsTyping(true);
-          setOmsg(typingUsers[otherUser?.id][0].msg);
-          setTimeout(() => {
-            setIsTyping(false);
-            setOmsg("...");
-          }, 4000);
-        }
-      }
-    });
+  // useEffect(() => {
+  //   const channel = supabase.channel("user-typing", {
+  //     config: {
+  //       presence: {
+  //         key: auth.currentUser.uid,
+  //       },
+  //     },
+  //   });
+  //   channel.subscribe(async (status) => {
+  //     if (status === "SUBSCRIBED") {
+  //       const status = await channel.track({
+  //         typing: true,
+  //         msg: msg,
+  //         updatedAt: new Date().getTime(),
+  //       });
+  //     }
+  //   });
+  //   channel.on("presence", { event: "leave" }, async () => {
+  //     updateUserChatRoomLastSeenAt({
+  //       ChatRoomID: chatRoomId,
+  //       UserID: auth.currentUser.uid,
+  //     });
+  //   });
+  //   channel.on("presence", { event: "sync" }, async () => {
+  //     const typingUsers = channel.presenceState();
+  //     if (typingUsers.hasOwnProperty(otherUser?.id)) {
+  //       // console.log(
+  //       //   new Date().getTime() - typingUsers[otherUser.id][0].updatedAt,
+  //       //   typingUsers[otherUser?.id][0].msg
+  //       // );
+  //       if (
+  //         new Date().getTime() - typingUsers[otherUser?.id][0].updatedAt <
+  //           10000 &&
+  //         typingUsers[otherUser?.id][0].msg.length > 0
+  //       ) {
+  //         // console.log("he typed");
+  //         setIsTyping(true);
+  //         setOmsg(typingUsers[otherUser?.id][0].msg);
+  //         setTimeout(() => {
+  //           setIsTyping(false);
+  //           setOmsg("...");
+  //         }, 4000);
+  //       }
+  //     }
+  //   });
 
-    return () => {
-      supabase.removeChannel(channel);
-      // console.log("channel removed1");
-    };
-  }, [chatRoomId, msg]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //     // console.log("channel removed1");
+  //   };
+  // }, [chatRoomId, msg]);
 
   const _handleFocus = (state) => {
     if (state === "active") fetchMessages();
@@ -222,13 +226,17 @@ const ChatRoom = () => {
     return () => sub.remove();
   }, []);
 
-  const handleReplying = (msg) => {
+  const handleReplying = useCallback((msg) => {
     setReplying(msg);
     console.log(msg);
-  };
+  });
   const handleReplyingCancel = () => {
     setReplying(null);
   };
+
+  const getTypingMessage = useCallback(() => {
+    return chatInput?.current;
+  }, [chatRoomId]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -239,7 +247,11 @@ const ChatRoom = () => {
       },
 
       headerLeft: () => (
-        <CustomHeader image={otherUser?.image} oUser={otherUser} />
+        <CustomHeader
+          getTypingMessage={getTypingMessage}
+          image={otherUser?.image}
+          oUser={otherUser}
+        />
       ),
     });
   }, [otherUser.name]);
@@ -270,6 +282,7 @@ const ChatRoom = () => {
       <View style={styles.list}>
         <FlashList
           data={messages}
+          // extraData={messages}
           renderItem={renderItem}
           inverted
           onRefresh={fetchMessages}
@@ -280,7 +293,7 @@ const ChatRoom = () => {
         />
       </View>
 
-      {isTyping && (
+      {/* {isTyping && (
         <View style={styles.list}>
           <Message
             message={
@@ -291,9 +304,10 @@ const ChatRoom = () => {
             authUser={authUser.uid}
           />
         </View>
-      )}
+      )} */}
       <View style={{ paddingTop: 10 }}>
         <ChatInput
+          // ref={chatInput}
           chatRoom={chatRoom}
           otherUser={otherUser}
           onTyping={onTyping}
@@ -317,3 +331,19 @@ const styles = StyleSheet.create({
 });
 
 export default ChatRoom;
+
+const updateMyTypingStatus = async (chatRoomID, msg) => {
+  const channel = supabase.channel("broadcast");
+  channel.subscribe(async (status) => {
+    if (status === "SUBSCRIBED") {
+      const status = await channel.send({
+        type: "broadcast",
+        event: "TYPING",
+        payload: {
+          userID: auth.currentUser.uid,
+          msg: msg,
+        },
+      });
+    }
+  });
+};

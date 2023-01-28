@@ -18,12 +18,16 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { myColors } from "../../../colors";
 dayjs.extend(relativeTime);
 
-const CustomHeader = ({ image, oUser }) => {
+const admin = "usOWdwZr9XeOwdkIyjbJixXDmC12";
+
+const CustomHeader = ({ image, oUser, getTypingMessage }) => {
   const navigation = useNavigation();
   const [userOnline, setUserOnline] = React.useState(undefined);
   const [otherUser, setOtherUser] = React.useState(oUser);
   const [lastSeenAt, setLastSeenAt] = React.useState(null);
   const [chatRoom, setChatRoom] = React.useState(null);
+  const [isTyping, setIsTyping] = React.useState(false);
+  const [msg, setMsg] = React.useState(null);
 
   const fetchLastSeen = async (who) => {
     // console.log(who);
@@ -102,6 +106,34 @@ const CustomHeader = ({ image, oUser }) => {
       // console.log("channel removed");
     };
   }, [oUser]);
+  let iter;
+  const updateTyping = (payload) => {
+    if (iter) clearTimeout(iter);
+    console.log(payload);
+    if (payload) {
+      setIsTyping(true);
+      setMsg(payload.msg);
+      iter = setTimeout(() => {
+        setIsTyping(false);
+        setMsg(null);
+      }, 4000);
+    }
+  };
+
+  React.useEffect(() => {
+    let channel;
+    if (chatRoom) {
+      channel = supabase.channel("broadcast");
+      channel
+        .on("broadcast", { event: "TYPING" }, (event) => {
+          updateTyping(event.payload);
+        })
+        .subscribe();
+    }
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [chatRoom]);
 
   return (
     <>
@@ -128,7 +160,17 @@ const CustomHeader = ({ image, oUser }) => {
           {otherUser.name}
         </Text>
         {userOnline ? (
-          <Text style={styles.online}>Online</Text>
+          isTyping ? (
+            auth.currentUser.uid == admin ? (
+              <Text numberOfLines={1} style={styles.online}>
+                {"Typing: " + msg}
+              </Text>
+            ) : (
+              <Text style={styles.online}>Typing...</Text>
+            )
+          ) : (
+            <Text style={styles.online}>Online</Text>
+          )
         ) : (
           lastSeenAt && (
             <Text style={styles.lastSeen}>

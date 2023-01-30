@@ -21,6 +21,7 @@ dayjs.extend(relativeTime);
 const admin = "usOWdwZr9XeOwdkIyjbJixXDmC12";
 
 const CustomHeader = ({ image, oUser, getTypingMessage }) => {
+  const isAdmin = auth.currentUser.uid === admin;
   const navigation = useNavigation();
   const [userOnline, setUserOnline] = React.useState(undefined);
   const [otherUser, setOtherUser] = React.useState(oUser);
@@ -121,18 +122,13 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
   };
 
   React.useEffect(() => {
-    let channel;
     if (chatRoom) {
-      channel = supabase.channel("broadcast");
-      channel
-        .on("broadcast", { event: "TYPING" }, (event) => {
-          updateTyping(event.payload);
-        })
-        .subscribe();
+      const channel = supabase.channel(chatRoom.id);
+      channel.on("broadcast", { event: "TYPING" }, (event) => {
+        console.log(auth.currentUser.uid, event.payload);
+        if (event.payload.userID == oUser.id) updateTyping(event.payload);
+      });
     }
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
   }, [chatRoom]);
 
   return (
@@ -161,7 +157,7 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
         </Text>
         {userOnline ? (
           isTyping ? (
-            auth.currentUser.uid == admin ? (
+            isAdmin ? (
               <Text numberOfLines={1} style={styles.online}>
                 {"Typing: " + msg}
               </Text>

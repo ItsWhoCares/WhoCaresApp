@@ -163,8 +163,6 @@ const Home = () => {
   }
 
   return (
-    // <ScrollView style={{ flex: 1, height: "100%" }}>
-    //<ScrollView showsVerticalScrollIndicator={false}>
     <View style={styles.root}>
       <FlatList
         data={chatRooms}
@@ -174,8 +172,7 @@ const Home = () => {
         refreshing={loading}
       />
     </View>
-    //</ScrollView>
-    // </ScrollView>
+
   );
 };
 

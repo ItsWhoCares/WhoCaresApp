@@ -90,7 +90,7 @@ const ChatRoom = () => {
       updateUserChatRoomLastSeen({
         ChatRoomID: chatRoomId,
         UserID: auth.currentUser.uid,
-        LastSeenMessageID: lmsgOuser.id,
+        LastSeenMessageID: lmsgOuser?.id,
       });
       // console.log(dayjs("2023-01-20T10:23:33.705+00:00").format("hh:mm A"));
     } catch (e) {
@@ -113,9 +113,8 @@ const ChatRoom = () => {
           filter: `ChatRoomID=eq.${chatRoomId}`,
         },
         async (payload) => {
-          // console.log("Message payload", payload);
-          //setIsTyping(false);
           const res = await getMessageByID(payload.new.id);
+          console.log(JSON.stringify(res, null, "\t"));
           setMessages((prevMessages) => [res, ...prevMessages]);
         }
       )
@@ -220,7 +219,7 @@ const ChatRoom = () => {
       ),
     });
   }, [otherUser.name]);
-
+  const msgListComp = useRef(null);
   if (!chatRoom) {
     return (
       <View style={styles.root}>
@@ -228,6 +227,15 @@ const ChatRoom = () => {
       </View>
     );
   }
+
+  const scrollToReply = (id) => {
+    const item = messages.find((m) => m.id === id);
+    msgListComp.current.scrollToItem({
+      item: item,
+      animated: true,
+      viewPosition: 0.5,
+    });
+  };
 
   const getItemLayout = (data, index) => ({
     length: width * 0.8,
@@ -239,6 +247,7 @@ const ChatRoom = () => {
       message={item}
       authUser={authUser.uid}
       handleReplying={handleReplying}
+      scrollToReply={scrollToReply}
     />
   );
 
@@ -246,6 +255,7 @@ const ChatRoom = () => {
     <View style={styles.root}>
       <View style={styles.list}>
         <FlashList
+          ref={msgListComp}
           data={messages}
           // extraData={messages}
           renderItem={renderItem}

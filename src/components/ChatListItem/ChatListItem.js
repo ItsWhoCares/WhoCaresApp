@@ -48,12 +48,7 @@ const ChatListItem = ({ chat, onPress }) => {
           filter: `id=eq.${chat.ChatRoom.id}`,
         },
         async (payload) => {
-          // console.log(
-          //   "Before",
-          //   auth.currentUser.uid,
-          //   JSON.stringify(chatRoom, null, "\t")
-          // );
-          //Update the chat room last message
+
 
           if (payload.new.id === chatRoom.ChatRoom.id) {
             const newChatRoom = { ...chatRoom } || {};
@@ -76,11 +71,6 @@ const ChatListItem = ({ chat, onPress }) => {
             // console.log(JSON.stringify(res, null, "\t"));
           }
 
-          // console.log(
-          //   "After",
-          //   auth.currentUser.uid,
-          //   JSON.stringify(chatRoom, null, "\t")
-          // );
         }
       )
       .subscribe();

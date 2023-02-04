@@ -18,7 +18,7 @@ import { useWindowDimensions } from "react-native";
 import { deleteMessage } from "../../../supabaseQueries";
 import { Swipeable } from "react-native-gesture-handler";
 
-const Message = ({ message, authUser, handleReplying }) => {
+const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
   // console.log("rerendering message", message.text);
   const [rerender, setRerender] = useState(false);
 
@@ -91,7 +91,12 @@ const Message = ({ message, authUser, handleReplying }) => {
       { cancelable: true }
     );
   };
-  const _showImage = () => {};
+  const _showImage = async () => {
+    // const { data, error } = await supabase.storage
+    //   .from("chatroom")
+    //   .download(message.text);
+    // console.log(data);
+  };
 
   const _handleReply = () => {
     swipeComponent?.current?.close();
@@ -225,6 +230,7 @@ const Message = ({ message, authUser, handleReplying }) => {
               <Text> </Text>
             </View>
             <Pressable
+              onPress={() => scrollToReply(message.ReplyMessageID)}
               style={
                 isMyReplyMessage
                   ? isMyMessage

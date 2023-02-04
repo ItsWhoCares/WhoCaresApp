@@ -110,7 +110,7 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
   let iter;
   const updateTyping = (payload) => {
     if (iter) clearTimeout(iter);
-    console.log(payload);
+    // console.log(payload);
     if (payload) {
       setIsTyping(true);
       setMsg(payload.msg);
@@ -125,7 +125,7 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
     if (chatRoom) {
       const channel = supabase.channel(chatRoom.id);
       channel.on("broadcast", { event: "TYPING" }, (event) => {
-        console.log(auth.currentUser.uid, event.payload);
+        //console.log(auth.currentUser.uid, event.payload);
         if (event.payload.userID == oUser.id) updateTyping(event.payload);
       });
     }

@@ -6,8 +6,9 @@ import {
   Pressable,
   Alert,
   Modal,
+  Linking,
 } from "react-native";
-import React, { useState, useRef, memo } from "react";
+import React, { useState, useRef, memo, useEffect } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { myColors } from "../../../colors";
@@ -18,9 +19,14 @@ import { useWindowDimensions } from "react-native";
 import { deleteMessage } from "../../../supabaseQueries";
 import { Swipeable } from "react-native-gesture-handler";
 
+import * as FileSystem from "expo-file-system";
+import { async } from "@firebase/util";
+
 const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
   // console.log("rerendering message", message.text);
   const [rerender, setRerender] = useState(false);
+  const [imageUri, setImageUri] = useState(null);
+  const [imageDimensions, setImageDimensions] = useState(null);
 
   const swipeComponent = useRef(null);
   const { height, width } = useWindowDimensions();
@@ -30,11 +36,17 @@ const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
   const _isMedia = () => {
     return message?.isMedia == true ? true : false;
   };
+  if (_isMedia() && imageUri == null) {
+    const { data } = supabase.storage
+      .from("chatroom")
+      .getPublicUrl(message.text);
+    setImageUri(data.publicUrl);
+  }
   const getImageUri = () => {
     const { data } = supabase.storage
       .from("chatroom")
       .getPublicUrl(message.text);
-    return data.publicUrl;
+    return data?.publicUrl;
   };
   const _handleDeleteMessage = () => {
     if (isMyMessage == false) return;
@@ -91,11 +103,60 @@ const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
       { cancelable: true }
     );
   };
+
+  const loadImage = async () => {
+    const imgUri = getImageUri();
+    if (imgUri == null) return;
+    //check if the image is already downloaded
+    const res = await FileSystem.getInfoAsync(
+      FileSystem.documentDirectory + message.text.split("/").pop()
+    );
+    if (res.exists) {
+      setImageUri(res.uri);
+      Image.getSize(res.uri, (width, height) => {
+        setImageDimensions({ width, height });
+      });
+      return;
+    }
+
+    //download the image
+    const callback = (downloadProgress) => {
+      const progress =
+        downloadProgress.totalBytesWritten /
+        downloadProgress.totalBytesExpectedToWrite;
+      console.log(progress);
+    };
+
+    const downloadResumable = FileSystem.createDownloadResumable(
+      imgUri,
+      FileSystem.documentDirectory + imgUri.split("/").pop(),
+      {},
+      callback
+    );
+    try {
+      const { uri } = await downloadResumable.downloadAsync();
+      console.log("Finished downloading to ", uri);
+      Image.getSize(uri, (width, height) => {
+        setImageDimensions({ width, height });
+      });
+      setImageUri(uri);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (_isMedia()) loadImage();
+  }, []);
   const _showImage = async () => {
-    // const { data, error } = await supabase.storage
-    //   .from("chatroom")
-    //   .download(message.text);
-    // console.log(data);
+    // //Link to gallery app to view the image using LINKING
+    // const res = await FileSystem.getInfoAsync(
+    //   FileSystem.documentDirectory + message.text.split("/").pop()
+    // );
+    // if (res.exists) {
+    //   await Linking.openURL(res.uri);
+    //   return;
+    // }
   };
 
   const _handleReply = () => {
@@ -121,7 +182,10 @@ const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
     );
   };
 
-  if (_isMedia())
+  if (_isMedia()) {
+    if (imageUri == null || imageDimensions == null) return null;
+    const aspectRatio = imageDimensions.width / imageDimensions.height;
+    //console.log(aspectRatio);
     return (
       <Swipeable
         ref={swipeComponent}
@@ -163,9 +227,17 @@ const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
           }>
           <Image
             progressiveRenderingEnabled={true}
-            resizeMethod="scale"
-            style={{ width: width * 0.7, height: 200, borderRadius: 10 }}
-            source={{ uri: getImageUri() }}
+            resizeMode="contain"
+            style={{
+              width: "100%",
+              aspectRatio: aspectRatio,
+              borderRadius: 10,
+            }}
+            source={{
+              uri: imageUri,
+              // width: imageDimensions?.width,
+              // height: imageDimensions?.height,
+            }}
           />
           <Text
             style={[
@@ -180,7 +252,7 @@ const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
         </Pressable>
       </Swipeable>
     );
-
+  }
   if (message.ReplyMessageID) {
     const isMyReplyMessage = message?.ReplyMessage?.UserID === authUser;
     const whoReplied = isMyReplyMessage

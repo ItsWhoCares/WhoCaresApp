@@ -172,7 +172,6 @@ const Home = () => {
         refreshing={loading}
       />
     </View>
-
   );
 };
 

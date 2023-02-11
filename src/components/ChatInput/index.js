@@ -94,6 +94,8 @@ const ChatInput = ({
   // };
   // const [image, setImage] = useState(null);
   const handleImagePick = async () => {
+    temp();
+    return;
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -273,6 +275,12 @@ const _uploadImage = async (image, chatRoomID, oUserID) => {
     UserID: oUserID,
     message: mes,
   });
+};
+
+import { generateKeyPair } from "../../../encryption";
+const temp = async () => {
+  const res = await generateKeyPair();
+  console.log(res);
 };
 
 export default ChatInput;

@@ -85,16 +85,11 @@ const ChatRoom = () => {
       const lmsgOuser = messagesData.find(
         (msg) => msg.UserID === otherUser?.id
       );
-      // console.log(lmsgOuser);
-
       updateUserChatRoomLastSeen({
         ChatRoomID: chatRoomId,
         UserID: auth.currentUser.uid,
         LastSeenMessageID: lmsgOuser?.id,
       });
-      // console.log(dayjs("2023-01-20T10:23:33.705+00:00").format("hh:mm A"));
-    } catch (e) {
-      console.log(e);
     } finally {
       setLoading(false);
     }

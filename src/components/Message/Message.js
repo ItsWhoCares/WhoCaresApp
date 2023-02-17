@@ -124,7 +124,7 @@ const Message = ({ message, authUser, handleReplying, scrollToReply }) => {
       const progress =
         downloadProgress.totalBytesWritten /
         downloadProgress.totalBytesExpectedToWrite;
-      console.log(progress);
+      //console.log(progress);
     };
 
     const downloadResumable = FileSystem.createDownloadResumable(

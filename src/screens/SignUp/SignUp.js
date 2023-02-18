@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  useWindowDimensions,
-  ScrollView,
-  Alert,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import React, { useState } from "react";
 import CustomInput from "../../components/CustomInput/CustomInput";
 import CustomButton from "../../components/CustomButton";
@@ -47,16 +40,6 @@ const SignUp = () => {
     email.trim();
     password.trim();
     try {
-      // const response = await Auth.signUp({
-      //   username: email,
-      //   email,
-      //   password,
-      //   attributes: {
-      //     name,
-      //   },
-      // });
-      // console.log(userData);
-
       //firebase
       const userData = await createUserWithEmailAndPassword(
         auth,
@@ -70,7 +53,6 @@ const SignUp = () => {
         )}.jpg`,
       });
       const response = await sendEmailVerification(userData.user);
-      // console.log(response);
 
       Alert.alert(
         "Success",
@@ -89,11 +71,6 @@ const SignUp = () => {
     console.warn("Terms");
   };
 
-  const { width, height } = useWindowDimensions();
-  const [Username, setUsername] = useState("");
-  const [Email, setEmail] = useState("");
-  const [Password, setPassword] = useState("");
-  const [ConfirmPassword, setConfirmPassword] = useState("");
   return (
     <ScrollView
       style={{ backgroundColor: myColors.pbgc }}
@@ -197,8 +174,6 @@ const styles = StyleSheet.create({
     color: "white",
     width: "100%",
     textAlign: "center",
-    // textDecorationLine: "underline",
-    // textDecorationColor: "white",
   },
   title: {
     fontSize: 24,

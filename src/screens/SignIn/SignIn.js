@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   useWindowDimensions,
   Alert,
@@ -39,9 +38,6 @@ const SignIn = () => {
     if (loading) return;
     setLoading(true);
     try {
-      // const response = await Auth.signIn(data.email.trim(), data.password);
-      // syncUser();
-
       //firebase
       const response = await signInWithEmailAndPassword(
         auth,
@@ -52,17 +48,19 @@ const SignIn = () => {
         Alert.alert("Please verify your email");
         return;
       }
-
       const res = await addUser(response.user.uid, response.user.displayName);
       if (!res) {
         Alert.alert("Oops", "Something went wrong");
         return;
       }
-      // console.log("Calling notification");
       registerForPushNotificationsAsync();
       navigation.navigate("Home");
     } catch (error) {
-      Alert.alert("Oops", error.message);
+      if (error.code === "auth/invalid-email")
+        Alert.alert("Oops", "User not found");
+      else if (error.code === "auth/wrong-password")
+        Alert.alert("Oops", "Wrong password");
+      else Alert.alert("Oops", "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -75,8 +73,6 @@ const SignIn = () => {
     navigation.navigate("ResetPassword");
   };
 
-  const [Email, setEmail] = useState("");
-  const [Password, setPassword] = useState("");
   const { width, height } = useWindowDimensions();
   return (
     <View style={[styles.root, { height: height * 0.2 }]}>

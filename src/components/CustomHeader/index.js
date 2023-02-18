@@ -62,7 +62,6 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
 
   React.useEffect(() => {
     // Supabase client setup
-
     const channel = supabase.channel("online-users", {
       config: {
         presence: {
@@ -70,24 +69,19 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
         },
       },
     });
-
     channel.on("presence", { event: "sync" }, async () => {
       const onlineUsers = channel.presenceState();
       const ID = otherUser.id;
       if (onlineUsers[ID]) {
         const temp = onlineUsers[ID][0];
-        // console.log("Online users: ", onlineUsers, temp.online_at);
         setUserOnline(
           onlineUsers.hasOwnProperty(otherUser.id) &&
-            new Date().getTime() - temp.online_at < 10000
-            ? true
-            : false
+            new Date().getTime() - temp.online_at < 10000 ? true : false
         );
       } else {
         setUserOnline(false);
         fetchLastSeen();
       }
-      // console.log(onlineUsers[otherUser.id] ? true : false);
     });
     let inter;
 
@@ -104,13 +98,11 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
     return () => {
       clearInterval(inter);
       supabase.removeChannel(channel);
-      // console.log("channel removed");
     };
   }, [oUser]);
   let iter;
   const updateTyping = (payload) => {
     if (iter) clearTimeout(iter);
-    // console.log(payload);
     if (payload) {
       setIsTyping(true);
       setMsg(payload.msg);
@@ -125,7 +117,6 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
     if (chatRoom) {
       const channel = supabase.channel(chatRoom.id);
       channel.on("broadcast", { event: "TYPING" }, (event) => {
-        //console.log(auth.currentUser.uid, event.payload);
         if (event.payload.userID == oUser.id) updateTyping(event.payload);
       });
     }

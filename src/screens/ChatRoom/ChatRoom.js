@@ -102,28 +102,19 @@ const ChatRoom = () => {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
-          schema: "public",
-          table: "Message",
-          filter: `ChatRoomID=eq.${chatRoomId}`,
+          event: "INSERT",schema: "public",table: "Message",filter: `ChatRoomID=eq.${chatRoomId}`,
         },
         async (payload) => {
           const res = await getMessageByID(payload.new.id);
-          console.log(JSON.stringify(res, null, "\t"));
           setMessages((prevMessages) => [res, ...prevMessages]);
         }
       )
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "Message",
-          filter: `ChatRoomID=eq.${chatRoomId}`,
+          event: "UPDATE",schema: "public",table: "Message",filter: `ChatRoomID=eq.${chatRoomId}`,
         },
         async (payload) => {
-          // console.log("Message payload", payload);
-          //setIsTyping(false);
           //Update the deleted message only
           setMessages((prevMessages) => {
             //find the index of the message to be updated
@@ -163,7 +154,6 @@ const ChatRoom = () => {
             msg: msg,
           },
         });
-        console.log(status);
       }
     });
     return () => {

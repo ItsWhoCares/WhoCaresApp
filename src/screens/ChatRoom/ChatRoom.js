@@ -102,17 +102,24 @@ const ChatRoom = () => {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",schema: "public",table: "Message",filter: `ChatRoomID=eq.${chatRoomId}`,
+          event: "INSERT",
+          schema: "public",
+          table: "Message",
+          filter: `ChatRoomID=eq.${chatRoomId}`,
         },
         async (payload) => {
           const res = await getMessageByID(payload.new.id);
           setMessages((prevMessages) => [res, ...prevMessages]);
+          console.log(payload.new);
         }
       )
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",schema: "public",table: "Message",filter: `ChatRoomID=eq.${chatRoomId}`,
+          event: "UPDATE",
+          schema: "public",
+          table: "Message",
+          filter: `ChatRoomID=eq.${chatRoomId}`,
         },
         async (payload) => {
           //Update the deleted message only
@@ -268,6 +275,8 @@ const ChatRoom = () => {
       <View style={{ paddingTop: 10 }}>
         <ChatInput
           // ref={chatInput}
+          setMsgLoading={setLoading}
+          fetchMessages={fetchMessages}
           chatRoom={chatRoom}
           otherUser={otherUser}
           onTyping={onTyping}

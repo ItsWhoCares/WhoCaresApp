@@ -31,6 +31,8 @@ const ChatInput = ({
   onTyping,
   replying,
   handleReplyingCancel,
+  setMsgLoading,
+  fetchMessages,
 }) => {
   const [message, setMessage] = useState("");
   // const [otherUser, setOtherUser] = useState(OtherUser);
@@ -106,8 +108,11 @@ const ChatInput = ({
 
     if (!result.canceled) {
       // setImage(result.assets[0].uri);
-      _uploadImage(result.assets[0], chatRoom.id, otherUser.id);
+      setMsgLoading(true);
+      await _uploadImage(result.assets[0], chatRoom.id, otherUser.id);
+      setMsgLoading(false);
     }
+    fetchMessages();
   };
 
   return (
@@ -241,6 +246,7 @@ const _uploadImage = async (image, chatRoomID, oUserID) => {
     Alert.alert("Error", "Only png, jpg, and jpeg are supported");
     return;
   }
+
   const base64 = image.base64;
   const buffer = decode(base64);
 
@@ -254,6 +260,7 @@ const _uploadImage = async (image, chatRoomID, oUserID) => {
   if (error) {
     console.log(error);
     Alert.alert("Error", "Error uploading image");
+
     return;
   }
   console.log(image.uri.substring(image.uri.lastIndexOf("/") + 1));

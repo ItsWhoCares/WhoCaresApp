@@ -4,9 +4,9 @@ This is an online chat application for android, it is a platform for people to c
 
 <p align="center" width="100%">
     <img width="33%" src="https://kllspqoqajlddmvgnsft.supabase.co/storage/v1/object/public/avatar/Login.gif">
-    <img width="33%" src="https://kllspqoqajlddmvgnsft.supabase.co/storage/v1/object/public/avatar/Chat.gif">
+    <img width="33%" src="https://kllspqoqajlddmvgnsft.supabase.co/storage/v1/object/public/avatar/Profile3.gif">
 </p>
 <p align="center" width="100%">
-    <img width="33%" src="https://kllspqoqajlddmvgnsft.supabase.co/storage/v1/object/public/avatar/Profile3.gif">
+    <img width="33%" src="https://kllspqoqajlddmvgnsft.supabase.co/storage/v1/object/public/avatar/Chat2.gif">
     <img width="33%" src="https://kllspqoqajlddmvgnsft.supabase.co/storage/v1/object/public/avatar/Search.gif">
 </p>

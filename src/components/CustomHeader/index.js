@@ -76,7 +76,9 @@ const CustomHeader = ({ image, oUser, getTypingMessage }) => {
         const temp = onlineUsers[ID][0];
         setUserOnline(
           onlineUsers.hasOwnProperty(otherUser.id) &&
-            new Date().getTime() - temp.online_at < 10000 ? true : false
+            new Date().getTime() - temp.online_at < 10000
+            ? true
+            : false
         );
       } else {
         setUserOnline(false);
